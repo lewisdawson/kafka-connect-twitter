@@ -58,10 +58,10 @@ public class TwitterSourceConnector extends SourceConnector {
   @Override
   public List<Map<String, String>> taskConfigs(int maxTasks) {
     Preconditions.checkState(maxTasks > 0, "MaxTasks must be greater than 0");
-    final int tasks = Math.min(maxTasks, this.config.filterKeywords.size());
+    int numPerPartition = (int) Math.ceil((double)this.config.filterKeywords.size() / maxTasks);
     final List<Map<String, String>> taskConfigs = new ArrayList<>();
 
-    for (List<String> k : Iterables.partition(this.config.filterKeywords, tasks)) {
+    for (List<String> k : Iterables.partition(this.config.filterKeywords, numPerPartition)) {
       Map<String, String> taskSettings = new HashMap<>(this.settings);
 
       if (!k.isEmpty()) {

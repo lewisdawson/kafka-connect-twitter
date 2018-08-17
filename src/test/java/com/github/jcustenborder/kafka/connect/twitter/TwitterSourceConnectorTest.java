@@ -16,11 +16,59 @@
 package com.github.jcustenborder.kafka.connect.twitter;
 
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.*;
+
 public class TwitterSourceConnectorTest {
+
+  private TwitterSourceConnector connector;
+
+  @BeforeEach
+  void beforeEach() {
+
+  }
+
+
+
   @Test
   public void test() {
-    // Congrats on a passing test!
+    Set<String> filterKeywords = new HashSet<>();
+    filterKeywords.add("123");
+    filterKeywords.add("234");
+    filterKeywords.add("345");
+    filterKeywords.add("456");
+    filterKeywords.add("567");
+    filterKeywords.add("678");
+    filterKeywords.add("789");
+    filterKeywords.add("8910");
+
+
+    // 3 lists, 7 el = [[1,2], [3,4], [5,6,7]]
+
+    int maxTasks = 1;
+    int numPerPartition = (int)Math.ceil((double)filterKeywords.size() / maxTasks);
+    System.out.println("numPerPartition=" + numPerPartition);
+    final int tasks = Math.min(maxTasks, filterKeywords.size());
+    System.out.println("tasks=" + tasks);
+    final List<Map<String, String>> taskConfigs = new ArrayList<>();
+
+    Iterable<List<String>> partitions = Iterables.partition(filterKeywords, numPerPartition);
+    for (List<String> k : partitions) {
+      Map<String, String> taskSettings = new HashMap<>();
+
+      if (!k.isEmpty()) {
+        taskSettings.put(TwitterSourceConnectorConfig.FILTER_KEYWORDS_CONF, Joiner.on(',').join(k));
+        taskConfigs.add(taskSettings);
+
+        System.out.println(taskSettings.get(TwitterSourceConnectorConfig.FILTER_KEYWORDS_CONF));
+      }
+    }
+
+    System.out.println("taskConfigsSize=" + taskConfigs.size());
   }
+
 }

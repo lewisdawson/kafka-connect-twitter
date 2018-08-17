@@ -56,13 +56,19 @@ public class TwitterSourceTask extends SourceTask implements StatusListener {
     this.twitterStream = twitterStreamFactory.getInstance();
 
     String[] keywords = this.config.filterKeywords.toArray(new String[0]);
+    long[] userIds = new long[keywords.length];
+
+    int i = 0;
+    for(String keyword : keywords) {
+      userIds[i++] = Long.parseLong(keyword);
+    }
 
     if (log.isInfoEnabled()) {
       log.info("Setting up filters. Keywords = {}", Joiner.on(", ").join(keywords));
     }
 
     FilterQuery filterQuery = new FilterQuery();
-    filterQuery.track(keywords);
+    filterQuery.follow(userIds);
 
     if (log.isInfoEnabled()) {
       log.info("Starting the twitter stream.");
@@ -106,6 +112,11 @@ public class TwitterSourceTask extends SourceTask implements StatusListener {
 
   @Override
   public void onStatus(Status status) {
+    // If this is a retweet or not a tweet from a user on the list
+    if(!this.config.filterKeywords.contains(String.valueOf(status.getUser().getId()))) {
+      return ;
+    }
+
     try {
       Struct keyStruct = new Struct(StatusConverter.STATUS_SCHEMA_KEY);
       Struct valueStruct = new Struct(StatusConverter.STATUS_SCHEMA);
