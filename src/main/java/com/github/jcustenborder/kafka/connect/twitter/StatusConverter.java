@@ -226,6 +226,7 @@ public class StatusConverter {
     STATUS_SCHEMA = SchemaBuilder.struct()
         .name("com.github.jcustenborder.kafka.connect.twitter.Status")
         .doc("Twitter status message.")
+        .field("timestamp", SchemaBuilder.int64().doc("The created_at timestamp in microseconds").optional().build())
         .field("CreatedAt", Timestamp.builder().doc("Return the created_at").optional().build())
         .field("Id", SchemaBuilder.int64().doc("Returns the id of the status").optional().build())
         .field("Text", SchemaBuilder.string().doc("Returns the text of the status").optional().build())
@@ -569,6 +570,7 @@ public class StatusConverter {
 
   public static void convert(Status status, Struct struct) {
     struct
+        .put("timestamp", status.getCreatedAt().getTime() * 1000)
         .put("CreatedAt", status.getCreatedAt())
         .put("Id", status.getId())
         .put("Text", status.getText())
